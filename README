@@ -15,3 +15,124 @@
 -- Grouping and Aggregations SELECT DEPARTMENT, COUNT(WORKER_ID) AS Total_Employees FROM Worker GROUP BY DEPARTMENT ORDER BY DEPARTMENT; SELECT DISTINCT DEPARTMENT, (SELECT COUNT(*) FROM Worker AS W2 WHERE W2.DEPARTMENT = W1.DEPARTMENT) AS Total_Employees FROM Worker AS W1 ORDER BY DEPARTMENT; SELECT 'HR' AS DEPARTMENT, COUNT(WORKER_ID) AS Total_Employees FROM Worker WHERE DEPARTMENT = 'HR' UNION SELECT 'Admin' AS DEPARTMENT, COUNT(WORKER_ID) AS Total_Employees FROM Worker WHERE DEPARTMENT = 'Admin' UNION SELECT 'Account' AS DEPARTMENT, COUNT(WORKER_ID) AS Total_Employees FROM Worker WHERE DEPARTMENT = 'Account' ORDER BY DEPARTMENT;
 
 -- Finding Departments with Min and Max Employees (SELECT DEPARTMENT, COUNT(DEPARTMENT) AS total_employees FROM Worker GROUP BY DEPARTMENT ORDER BY total_employees ASC LIMIT 1) UNION ALL (SELECT DEPARTMENT, COUNT(DEPARTMENT) AS total_employees FROM Worker GROUP BY DEPARTMENT ORDER BY total_employees DESC LIMIT 1);
+
+3rd March
+// Database: vitCampusDB
+use vitCampusDB;
+
+// vitBhopal collection
+db.vitBhopal.insertMany([
+  { _id: 104, name: "Karthik", department: "CS" },
+  { _id: 103, name: "Arun", department: "CS" }
+]);
+
+// vit collection
+db.vit.insertMany([
+  { _id: 104, name: "Karthik", college: "Chennai" },
+  { _id: 103, name: "Arun", college: "Bhopal" }
+]);
+
+// Find all records
+db.vit.find();
+db.vitBhopal.find();
+
+// Find student of the year from Bhopal campus
+const bhopalID = db.vit.findOne({ college: "Bhopal" })._id;
+db.vitBhopal.find({ _id: bhopalID }, { name: 1, _id: 0 });
+
+// Worker & related collections
+use org1236;
+
+db.Worker.insertMany([
+  { WORKER_ID: 1, FIRST_NAME: "Monika", LAST_NAME: "Arora", SALARY: 100000, JOINING_DATE: new Date("2020-02-14T09:00:00"), DEPARTMENT: "HR" },
+  { WORKER_ID: 2, FIRST_NAME: "Niharika", LAST_NAME: "Verma", SALARY: 80000, JOINING_DATE: new Date("2011-06-14T09:00:00"), DEPARTMENT: "Admin" },
+  { WORKER_ID: 3, FIRST_NAME: "Vishal", LAST_NAME: "Singhal", SALARY: 300000, JOINING_DATE: new Date("2020-02-14T09:00:00"), DEPARTMENT: "HR" },
+  { WORKER_ID: 4, FIRST_NAME: "Amitabh", LAST_NAME: "Singh", SALARY: 500000, JOINING_DATE: new Date("2020-02-14T09:00:00"), DEPARTMENT: "Admin" },
+  { WORKER_ID: 5, FIRST_NAME: "Vivek", LAST_NAME: "Bhati", SALARY: 500000, JOINING_DATE: new Date("2011-06-14T09:00:00"), DEPARTMENT: "Admin" },
+  { WORKER_ID: 6, FIRST_NAME: "Vipul", LAST_NAME: "Diwan", SALARY: 200000, JOINING_DATE: new Date("2011-06-14T09:00:00"), DEPARTMENT: "Account" },
+  { WORKER_ID: 7, FIRST_NAME: "Satish", LAST_NAME: "Kumar", SALARY: 75000, JOINING_DATE: new Date("2020-01-14T09:00:00"), DEPARTMENT: "Account" },
+  { WORKER_ID: 8, FIRST_NAME: "Geetika", LAST_NAME: "Chauhan", SALARY: 90000, JOINING_DATE: new Date("2011-04-14T09:00:00"), DEPARTMENT: "Admin" }
+]);
+
+db.Bonus.insertMany([
+  { WORKER_REF_ID: 1, BONUS_AMOUNT: 5000, BONUS_DATE: new Date("2020-02-16") },
+  { WORKER_REF_ID: 2, BONUS_AMOUNT: 3000, BONUS_DATE: new Date("2011-06-16") },
+  { WORKER_REF_ID: 3, BONUS_AMOUNT: 4000, BONUS_DATE: new Date("2020-02-16") },
+  { WORKER_REF_ID: 1, BONUS_AMOUNT: 4500, BONUS_DATE: new Date("2020-02-16") },
+  { WORKER_REF_ID: 2, BONUS_AMOUNT: 3500, BONUS_DATE: new Date("2011-06-16") }
+]);
+
+db.Title.insertMany([
+  { WORKER_REF_ID: 1, WORKER_TITLE: "Manager", AFFECTED_FROM: new Date("2016-02-20") },
+  { WORKER_REF_ID: 2, WORKER_TITLE: "Executive", AFFECTED_FROM: new Date("2016-06-11") },
+  { WORKER_REF_ID: 8, WORKER_TITLE: "Executive", AFFECTED_FROM: new Date("2016-06-11") },
+  { WORKER_REF_ID: 5, WORKER_TITLE: "Manager", AFFECTED_FROM: new Date("2016-06-11") },
+  { WORKER_REF_ID: 4, WORKER_TITLE: "Asst. Manager", AFFECTED_FROM: new Date("2016-06-11") },
+  { WORKER_REF_ID: 7, WORKER_TITLE: "Executive", AFFECTED_FROM: new Date("2016-06-11") },
+  { WORKER_REF_ID: 6, WORKER_TITLE: "Lead", AFFECTED_FROM: new Date("2016-06-11") },
+  { WORKER_REF_ID: 3, WORKER_TITLE: "Lead", AFFECTED_FROM: new Date("2016-06-11") }
+]);
+
+// Aggregation example: count of workers by department
+db.Worker.aggregate([
+  { $group: { _id: "$DEPARTMENT", count: { $sum: 1 } } },
+  { $sort: { count: -1 } }
+]);
+
+// Top 5 departments by worker count
+db.Worker.aggregate([
+  { $group: { _id: "$DEPARTMENT", count: { $sum: 1 } } },
+  { $sort: { count: -1 } },
+  { $limit: 5 }
+]);
+
+// Student and VIT CGPA
+use studentDB;
+
+db.student.insertMany([
+  { s_id: 1001, s_name: "Jayanth", s_department: "ECE" },
+  { s_id: 1002, s_name: "Praveen", s_department: "CSE" },
+  { s_id: 1003, s_name: "Logesh", s_department: "Mech" },
+  { s_id: 1006, s_name: "Karthick", s_department: "Aero" },
+  { s_id: 1007, s_name: "Mahesh", s_department: "Civil" }
+]);
+
+db.cgpa.insertMany([
+  { s_id: 1001, s_cgpa: "7.2" },
+  { s_id: 1002, s_cgpa: "8.6" },
+  { s_id: 1007, s_cgpa: "9.25" }
+]);
+
+// Join student & CGPA (manual via aggregation)
+db.student.aggregate([
+  {
+    $lookup: {
+      from: "cgpa",
+      localField: "s_id",
+      foreignField: "s_id",
+      as: "cgpaInfo"
+    }
+  },
+  { $unwind: { path: "$cgpaInfo", preserveNullAndEmptyArrays: true } }
+]);
+
+// Customer Collection
+use JBSQL1;
+
+db.Customer.insertMany([
+  { FirstName: "Joey", LastName: "Tribiani", Age: 40, City: "NewYork" },
+  { FirstName: "Chandler", LastName: "Bing", Age: 41, City: "NewYork" },
+  { FirstName: "Ross", LastName: "Geller", Age: 42, City: "NewYork" },
+  { FirstName: "Phoebe", LastName: "Buffet", Age: 43, City: "NewYork" },
+  { FirstName: "Rachel", LastName: "Something", Age: 44, City: "NewYork" },
+  { FirstName: "Monica", LastName: "Geller", Age: 45, City: "NewYork" }
+]);
+
+// Query with pattern match (like in SQL)
+db.Customer.find({ FirstName: /o/, LastName: /e/ });
+
+// Product collection
+db.Products.insertMany([
+  { ProductName: "Baseball", Price: 69.96 },
+  { ProductName: "FootBall", Price: 69.96 }
+]);
